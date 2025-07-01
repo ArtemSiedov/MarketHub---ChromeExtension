@@ -25,6 +25,24 @@ function createMarketHubModal() {
     const modal = document.createElement('div');
     modal.className = 'market-hub-modal';
 
+    // === БЛОК УПРАВЛЕНИЕ ===
+    const managementBlock = document.createElement('div');
+    managementBlock.className = 'market-hub-modal-block';
+    managementBlock.innerHTML = `
+        <div class="market-hub-modal-block-title">Управление</div>
+        <label class="market-hub-checkbox-label">
+            <input type="checkbox" id="quick-open-products-checkbox" class="market-hub-checkbox">
+            <span>Открыть товары</span>
+        </label>
+        <div class="market-hub-hotkey-container" id="hotkey-container" style="display: none; margin-top: 12px;">
+            <div class="market-hub-hotkey-label">Хоткей для открытия товаров:</div>
+            <input type="text" id="hotkey-input" class="market-hub-hotkey-input" placeholder="Нажмите клавиши..." readonly>
+            <div class="market-hub-hotkey-hint">Нажмите сочетание клавиш (например: Ctrl+Shift+O)</div>
+        </div>
+    `;
+    modal.appendChild(managementBlock);
+    // === КОНЕЦ БЛОКА УПРАВЛЕНИЕ ===
+
     // === БЛОК НАВИГАЦИЯ ===
     const navigationBlock = document.createElement('div');
     navigationBlock.className = 'market-hub-modal-block';
@@ -41,37 +59,86 @@ function createMarketHubModal() {
     // Кнопки
     const actions = document.createElement('div');
     actions.className = 'market-hub-actions';
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'market-hub-btn cancel';
-    cancelBtn.textContent = 'Отмена';
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'market-hub-btn save';
-    saveBtn.textContent = 'Сохранить';
-    actions.appendChild(cancelBtn);
-    actions.appendChild(saveBtn);
+    actions.innerHTML = `
+      <button class="market-hub-btn cancel">Отмена</button>
+      <button class="market-hub-btn save">Сохранить</button>
+    `;
     modal.appendChild(actions);
 
-    // Загрузка состояния чекбокса
-    chrome.storage.local.get(['paginationPlus'], (result) => {
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // === ПОСЛЕ добавления в DOM ищем элементы и вешаем обработчики ===
+    // Загрузка состояния чекбоксов
+    chrome.storage.local.get(['paginationPlus', 'quickOpenProducts', 'quickOpenHotkey'], (result) => {
       try {
-        const checkbox = document.getElementById('pagination-checkbox');
-        checkbox.checked = !!result.paginationPlus;
-      } catch (e) { console.error('MarketHub: ошибка при загрузке состояния чекбокса', e); }
+        const paginationCheckbox = document.getElementById('pagination-checkbox');
+        const quickOpenCheckbox = document.getElementById('quick-open-products-checkbox');
+        const hotkeyContainer = document.getElementById('hotkey-container');
+        const hotkeyInput = document.getElementById('hotkey-input');
+        
+        paginationCheckbox.checked = !!result.paginationPlus;
+        quickOpenCheckbox.checked = !!result.quickOpenProducts;
+        
+        if (result.quickOpenHotkey) {
+          hotkeyInput.value = result.quickOpenHotkey;
+        }
+        
+        // Показать/скрыть контейнер хоткея
+        if (quickOpenCheckbox.checked) {
+          hotkeyContainer.style.display = 'block';
+        }
+      } catch (e) { console.error('MarketHub: ошибка при загрузке состояния чекбоксов', e); }
+    });
+
+    // Обработчик чекбокса "Открыть товары"
+    const quickOpenCheckbox = document.getElementById('quick-open-products-checkbox');
+    const hotkeyContainer = document.getElementById('hotkey-container');
+    quickOpenCheckbox.addEventListener('change', () => {
+      if (quickOpenCheckbox.checked) {
+        hotkeyContainer.style.display = 'block';
+      } else {
+        hotkeyContainer.style.display = 'none';
+      }
+    });
+
+    // Обработчик ввода хоткея
+    const hotkeyInput = document.getElementById('hotkey-input');
+    hotkeyInput.addEventListener('keydown', (e) => {
+      e.preventDefault();
+      const keys = [];
+      if (e.ctrlKey) keys.push('Ctrl');
+      if (e.shiftKey) keys.push('Shift');
+      if (e.altKey) keys.push('Alt');
+      if (e.metaKey) keys.push('Meta');
+      // Добавляем основную клавишу (если это не модификатор)
+      if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+        keys.push(e.key.toUpperCase());
+      }
+      if (keys.length > 1) { // Нужен хотя бы один модификатор + основная клавиша
+        hotkeyInput.value = keys.join('+');
+      }
     });
 
     // Сохранить
+    const saveBtn = modal.querySelector('.market-hub-btn.save');
     saveBtn.addEventListener('click', () => {
       try {
-        chrome.storage.local.set({
-          paginationPlus: document.getElementById('pagination-checkbox').checked
-        }, () => {
+        const settings = {
+          paginationPlus: document.getElementById('pagination-checkbox').checked,
+          quickOpenProducts: document.getElementById('quick-open-products-checkbox').checked,
+          quickOpenHotkey: document.getElementById('hotkey-input').value
+        };
+        chrome.storage.local.set(settings, () => {
           removeMarketHubModal();
           enhancePaginationIfEnabled();
+          setupQuickOpenProducts();
         });
       } catch (e) { console.error('MarketHub: ошибка при сохранении состояния', e); }
     });
 
     // Отмена
+    const cancelBtn = modal.querySelector('.market-hub-btn.cancel');
     cancelBtn.addEventListener('click', () => {
       try { removeMarketHubModal(); } catch (e) { console.error('MarketHub: ошибка при закрытии модалки', e); }
     });
@@ -84,9 +151,6 @@ function createMarketHubModal() {
         }
       } catch (e) { console.error('MarketHub: ошибка при клике вне модалки', e); }
     });
-
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
   } catch (e) {
     console.error('MarketHub: ошибка при создании модалки', e);
   }
@@ -109,10 +173,77 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg && msg.type === 'close_market_hub_modal') {
       removeMarketHubModal();
     }
+    if (msg && msg.action === 'openProducts') {
+      openAllProducts();
+    }
   } catch (e) {
     console.error('MarketHub: ошибка в обработчике сообщений', e);
   }
 });
+
+// === БЫСТРОЕ ОТКРЫТИЕ ТОВАРОВ ===
+function setupQuickOpenProducts() {
+  try {
+    chrome.storage.local.get(['quickOpenProducts', 'quickOpenHotkey'], (result) => {
+      try {
+        if (!result.quickOpenProducts || !result.quickOpenHotkey) {
+          // Удаляем старый обработчик если есть
+          if (window.marketHubHotkeyHandler) {
+            document.removeEventListener('keydown', window.marketHubHotkeyHandler);
+            window.marketHubHotkeyHandler = null;
+          }
+          return;
+        }
+
+        // Парсим хоткей
+        const hotkey = result.quickOpenHotkey;
+        const keys = hotkey.split('+');
+        
+        // Удаляем старый обработчик если есть
+        if (window.marketHubHotkeyHandler) {
+          document.removeEventListener('keydown', window.marketHubHotkeyHandler);
+        }
+
+        // Создаем новый обработчик
+        window.marketHubHotkeyHandler = (e) => {
+          const pressedKeys = [];
+          if (e.ctrlKey) pressedKeys.push('Ctrl');
+          if (e.shiftKey) pressedKeys.push('Shift');
+          if (e.altKey) pressedKeys.push('Alt');
+          if (e.metaKey) pressedKeys.push('Meta');
+          pressedKeys.push(e.key.toUpperCase());
+
+          const pressedHotkey = pressedKeys.join('+');
+          
+          if (pressedHotkey === hotkey) {
+            e.preventDefault();
+            openAllProducts();
+          }
+        };
+
+        document.addEventListener('keydown', window.marketHubHotkeyHandler);
+      } catch (e) { console.error('MarketHub: ошибка в setupQuickOpenProducts (внутренняя)', e); }
+    });
+  } catch (e) {
+    console.error('MarketHub: ошибка в setupQuickOpenProducts', e);
+  }
+}
+
+function openAllProducts() {
+  try {
+    const productCells = document.querySelectorAll("#sync-sources-container > table > tbody > tr > td:nth-child(3) > div > a");
+    if (productCells.length === 0) {
+      console.log('MarketHub: товары не найдены на странице');
+      return;
+    }
+    console.log(`MarketHub: найдено ${productCells.length} товаров, открываем...`);
+    productCells.forEach((cell, index) => {
+          window.open(cell.href, '_blank');
+    });
+  } catch (e) {
+    console.error('MarketHub: ошибка при открытии товаров', e);
+  }
+}
 
 // === ПАГИНАЦИЯ+ ===
 function enhancePaginationIfEnabled() {
@@ -299,8 +430,63 @@ function observePaginationContainer() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+// Инициализация
 observePaginationContainer();
-
 observePaginationPlus();
 
- 
+// Инициализация быстрого открытия товаров
+window.addEventListener('DOMContentLoaded', setupQuickOpenProducts);
+setupQuickOpenProducts();
+
+// === ГЛОБАЛЬНЫЙ ХОТКЕЙ ДЛЯ ОТКРЫТИЯ ТОВАРОВ ===
+(function setupProductsHotkey() {
+  let lastHotkey = null;
+  let handler = null;
+
+  function parseHotkey(hotkeyStr) {
+    if (!hotkeyStr) return null;
+    return hotkeyStr.toLowerCase().split('+').map(k => k.trim());
+  }
+
+  function matchHotkey(e, hotkeyArr) {
+    if (!hotkeyArr || !hotkeyArr.length) return false;
+    const key = e.key.toLowerCase();
+    const mods = [];
+    if (e.ctrlKey) mods.push('ctrl');
+    if (e.shiftKey) mods.push('shift');
+    if (e.altKey) mods.push('alt');
+    if (e.metaKey) mods.push('meta');
+    // Последний элемент — основная клавиша
+    const mainKey = hotkeyArr[hotkeyArr.length - 1];
+    const hotkeyMods = hotkeyArr.slice(0, -1);
+    return key === mainKey && mods.length === hotkeyMods.length && mods.every(m => hotkeyMods.includes(m));
+  }
+
+  function updateHotkeyListener(hotkeyStr) {
+    if (handler) {
+      document.removeEventListener('keydown', handler);
+      handler = null;
+    }
+    if (!hotkeyStr) return;
+    const hotkeyArr = parseHotkey(hotkeyStr);
+    handler = function(e) {
+      if (matchHotkey(e, hotkeyArr)) {
+        e.preventDefault();
+        openAllProducts();
+      }
+    };
+    document.addEventListener('keydown', handler);
+  }
+
+  // Инициализация и слежение за изменением хоткея
+  chrome.storage.local.get(['productsHotkey'], (result) => {
+    lastHotkey = result.productsHotkey || null;
+    updateHotkeyListener(lastHotkey);
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.productsHotkey) {
+      lastHotkey = changes.productsHotkey.newValue;
+      updateHotkeyListener(lastHotkey);
+    }
+  });
+})();

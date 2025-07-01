@@ -16,6 +16,17 @@
       <button id="saveBtn">Сохранить</button>
     </div>
   </div>
+  <!-- Управление -->
+  <div class="manage-block" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+    <h3 style="margin: 0 0 10px 0; font-size: 16px;">Управление</h3>
+    <button id="openProductsBtn" style="margin-bottom: 10px;">Открыть товары</button>
+    <div style="margin-bottom: 5px;">
+      <label for="hotkeyInput">Хоткей для открытия товаров:</label>
+      <input type="text" id="hotkeyInput" maxlength="20" style="width: 120px;">
+      <button id="saveHotkeyBtn">Сохранить хоткей</button>
+    </div>
+    <div id="hotkeyStatus" style="font-size: 12px; color: #888;"></div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html> 
