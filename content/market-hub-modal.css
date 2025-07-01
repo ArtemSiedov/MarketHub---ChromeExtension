@@ -1,0 +1,174 @@
+.market-hub-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(40,48,72,0.32);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.18s;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.95) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.market-hub-modal, .market-hub-modal * {
+  box-sizing: border-box !important;
+  font-family: 'Segoe UI', 'Arial', 'sans-serif' !important;
+  color: #2d2d2d !important;
+  letter-spacing: 0;
+  text-align: left;
+}
+.market-hub-modal {
+  background: #fff !important;
+  font-size: 16px;
+  min-width: 320px;
+  min-height: 120px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(60, 60, 120, 0.18), 0 1.5px 6px rgba(0,0,0,0.08);
+  padding: 32px 32px 72px 32px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  animation: modalIn 0.25s cubic-bezier(.4,2,.6,1) 1;
+}
+.market-hub-block {
+  margin-bottom: 24px;
+  width: 100%;
+}
+.market-hub-block-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
+.market-hub-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0;
+  position: relative;
+}
+.market-hub-checkbox-text {
+  font-size: 17px;
+  color: #2d2d2d;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  user-select: text;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  padding-right: 0;
+  min-width: 0;
+}
+.market-hub-checkbox-divider {
+  width: 1px;
+  height: 22px;
+  background: #e5e7eb;
+  border: none;
+  display: block;
+  margin: 0 0;
+}
+.market-hub-checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+.market-hub-modal input[type="checkbox"].market-hub-checkbox {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 4px;
+  appearance: checkbox;
+  vertical-align: middle;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: initial;
+  border: initial;
+  display: inline-block;
+}
+.market-hub-modal input[type="checkbox"].market-hub-checkbox:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+.market-hub-modal input[type="color"].market-hub-color-input {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(60,60,120,0.08);
+  transition: box-shadow 0.18s;
+}
+.market-hub-modal input[type="color"].market-hub-color-input:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+.market-hub-actions {
+  position: absolute;
+  right: 32px;
+  bottom: 24px;
+  display: flex;
+  gap: 12px;
+}
+.market-hub-modal button.market-hub-btn {
+  padding: 8px 22px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: none;
+  background: #f3f6fa;
+  color: #2d2d2d;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(60,60,120,0.06);
+  transition: background 0.18s, color 0.18s;
+  min-width: 90px;
+}
+.market-hub-modal button.market-hub-btn.save {
+  background: #3b82f6;
+  color: #fff;
+}
+.market-hub-modal button.market-hub-btn.save:hover {
+  background: #2563eb;
+}
+.market-hub-modal button.market-hub-btn.cancel:hover {
+  background: #e5e7eb;
+}
+
+/*
+.market-hub-modal-block-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.market-hub-modal-block {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.market-hub-modal-block:last-child {
+    border-bottom: none;
+}
+
+.market-hub-modal-description {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+}
+*/ 
