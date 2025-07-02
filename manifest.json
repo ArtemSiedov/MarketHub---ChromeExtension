@@ -1,7 +1,7 @@
 {
   "name": "MarketHub - ChromeExtension",
   "description": "MarketHub is a Chrome extension that adds useful features to your admin panel to simplify your workflow.",
-  "version": "1.0",
+  "version": "2.0",
   "manifest_version": 3,
   "permissions": [
     "storage",
