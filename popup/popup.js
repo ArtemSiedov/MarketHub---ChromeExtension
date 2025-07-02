@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Управление ---
   const openProductsBtn = document.getElementById('openProductsBtn');
   const hotkeyInput = document.getElementById('hotkeyInput');
-  const saveHotkeyBtn = document.getElementById('saveHotkeyBtn');
   const hotkeyStatus = document.getElementById('hotkeyStatus');
 
   // Загрузка хоткея
@@ -31,16 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.productsHotkey) {
       hotkeyInput.value = result.productsHotkey;
       hotkeyStatus.textContent = `Текущий хоткей: ${result.productsHotkey}`;
-    }
-  });
-
-  // Сохранить хоткей
-  saveHotkeyBtn.addEventListener('click', () => {
-    const hotkey = hotkeyInput.value.trim();
-    if (hotkey) {
-      chrome.storage.local.set({ productsHotkey: hotkey }, () => {
-        hotkeyStatus.textContent = `Текущий хоткей: ${hotkey}`;
-      });
     }
   });
 
@@ -53,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const selectProductHotkeyCheckbox = document.getElementById('selectProductHotkeyCheckbox');
   const selectProductHotkeyInput = document.getElementById('selectProductHotkeyInput');
-  const saveSelectProductHotkeyBtn = document.getElementById('saveSelectProductHotkeyBtn');
   const selectProductHotkeyStatus = document.getElementById('selectProductHotkeyStatus');
 
   // Загрузка состояния хоткея выбора товара
@@ -81,16 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (keys.length > 1) {
       selectProductHotkeyInput.value = keys.join('+');
-    }
-  });
-
-  saveSelectProductHotkeyBtn.addEventListener('click', () => {
-    const hotkey = selectProductHotkeyInput.value.trim();
-    const enabled = selectProductHotkeyCheckbox.checked;
-    if (hotkey) {
-      chrome.storage.local.set({ selectProductHotkey: hotkey, selectProductHotkeyEnabled: enabled }, () => {
-        selectProductHotkeyStatus.textContent = `Текущий хоткей выбора: ${hotkey}`;
-      });
     }
   });
 }); 
