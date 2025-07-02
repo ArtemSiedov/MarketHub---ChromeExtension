@@ -46,6 +46,7 @@ export class ModalManager {
         <div class="market-hub-inline-block">
           <div class="market-hub-modal-block-title">Выбор товара</div>
           <input type="text" id="select-product-hotkey-input" class="market-hub-hotkey-input-inline" placeholder="Клавиша..." readonly>
+          <div class="market-hub-hotkey-hint">+ Mouse click</div>
         </div>
       </div>
     `;
