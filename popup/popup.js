@@ -50,4 +50,47 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.tabs.sendMessage(tabs[0].id, { action: 'openProducts' });
     });
   });
+
+  const selectProductHotkeyCheckbox = document.getElementById('selectProductHotkeyCheckbox');
+  const selectProductHotkeyInput = document.getElementById('selectProductHotkeyInput');
+  const saveSelectProductHotkeyBtn = document.getElementById('saveSelectProductHotkeyBtn');
+  const selectProductHotkeyStatus = document.getElementById('selectProductHotkeyStatus');
+
+  // Загрузка состояния хоткея выбора товара
+  chrome.storage.local.get(['selectProductHotkeyEnabled', 'selectProductHotkey'], (result) => {
+    selectProductHotkeyCheckbox.checked = !!result.selectProductHotkeyEnabled;
+    if (result.selectProductHotkey) {
+      selectProductHotkeyInput.value = result.selectProductHotkey;
+      selectProductHotkeyStatus.textContent = `Текущий хоткей выбора: ${result.selectProductHotkey}`;
+    }
+  });
+
+  selectProductHotkeyCheckbox.addEventListener('change', () => {
+    chrome.storage.local.set({ selectProductHotkeyEnabled: selectProductHotkeyCheckbox.checked });
+  });
+
+  selectProductHotkeyInput.addEventListener('keydown', (e) => {
+    e.preventDefault();
+    const keys = [];
+    if (e.ctrlKey) keys.push('Ctrl');
+    if (e.shiftKey) keys.push('Shift');
+    if (e.altKey) keys.push('Alt');
+    if (e.metaKey) keys.push('Meta');
+    if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+      keys.push(e.key.toUpperCase());
+    }
+    if (keys.length > 1) {
+      selectProductHotkeyInput.value = keys.join('+');
+    }
+  });
+
+  saveSelectProductHotkeyBtn.addEventListener('click', () => {
+    const hotkey = selectProductHotkeyInput.value.trim();
+    const enabled = selectProductHotkeyCheckbox.checked;
+    if (hotkey) {
+      chrome.storage.local.set({ selectProductHotkey: hotkey, selectProductHotkeyEnabled: enabled }, () => {
+        selectProductHotkeyStatus.textContent = `Текущий хоткей выбора: ${hotkey}`;
+      });
+    }
+  });
 }); 
